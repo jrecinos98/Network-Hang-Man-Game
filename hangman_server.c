@@ -38,10 +38,12 @@ void pick_from_file(char *word){
 	printf("STUB\n");
 }
 
+// Send a string only message
 void send_string_msg(int msg_len, char *msg){
 	printf("STUB\n");
 }
 
+// Send a game control message with proper fields
 void send_control_msg(int word_len, int num_correct, char *word, char *incorrect){
 	printf("STUB\n");
 }
