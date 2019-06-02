@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <strings.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <ctype.h>
 
 #define IPv4 AF_INET
 #define SERVER_TYPE SOCK_STREAM
@@ -28,8 +30,19 @@ int is_string(char * buf){
      strtol(buf, &end,10);
      return end == buf;
 }
-int make_lowercase(char guess){
-	return strlwr(guess);
+void get_data(char *buffer,char* data, int word_len){
+	bzero(data, word_len);
+	if(word_len > 0){
+		for(int i=0; i < word_len;i++){
+			data[i]= buffer[i+3]; 
+		}
+	}
+}
+void get_incorrect(char *buffer, char* incorrect){
+	bzero(incorrect,6);
+	for(int i=0; i < buffer[1];i++){
+		incorrect[i]= buffer[i+buffer[2]+3]; 
+	}
 }
 int set_addr(struct sockaddr_in *address, int portNum, char ip_addr[]){
     struct hostent *hp = gethostbyname(ip_addr);
@@ -43,7 +56,7 @@ int set_addr(struct sockaddr_in *address, int portNum, char ip_addr[]){
     bcopy((char*) hp->h_addr, (char*) &address->sin_addr.s_addr, hp->h_length) ;
     return 0;
 }
-int main(){
+int main(int argc, char *argv[]){
 	int sockfd;
     struct sockaddr_in serv_addr;
     char buffer[MAX];
@@ -72,47 +85,58 @@ int main(){
     fgets(start,1,stdin);
 
     //End the client if the user doesnt input y
-    if (start[0] != "y"){
+    if (start[0] != 'y'){
     	return 0;
     }
-    int game=1
     //Write empty message to the server to signal start of game.
     if (write(sockfd,"0",strlen(buffer)) < 0) 
         error("ERROR writing to socket");
-    while(game){
+    while(1){
         bzero(buffer,MAX);
         //Read the reply
         if (read(sockfd,buffer,MAX-1) < 0){
              error("ERROR reading from socket");
-             exit=0;
+       
         }
+        int msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
-        if(buffer[0]){
+        if(msg_flag){
         	printf("%s\n", buffer+1);
+        	//User either won or lost. Terminate loop and kill client
+        	break;
         }
         //else it is a normal game control packet
+        int word_len= buffer[1];
+        char data[word_len];
+        char incorrect[6];
+        //Extract the word data from buffer
+        get_data(buffer, data, word_len);
+        //Extract the incorrect characters
+        get_incorrect(buffer, incorrect);
+
+        //Print info
+        printf("%s\n", data);
+        printf("incorrect Guesses: %s\n\n", incorrect);
 
         char guess[MAX]={0};
         //Loop until 1 char input is given
         while(strlen(guess) != 1 || !is_string(guess)){
-        	printf("Letter to guess:\n");
+        	printf("Letter to guess: ");
        		fgets(guess,MAX, stdin);
        		if(strlen(guess) !=1 || !is_string(guess)){
-        		printf("Error! Please guess one letter.\n")
+        		printf("Error! Please guess one letter.\n");
        			//Clear wrong values
        			bzero(guess, MAX);
        		}
         }
         //Format the message
-        char message[2]={1,make_lower(guess[0])}
+        char message[2]={1,tolower(guess[0])};
         //Send the message to the server
         if(write(sockfd,message,strlen(buffer)) < 0){
         	error("ERROR writing to socket");
         }
         
     }
-
-
-
+    close(sockfd);
 	return 0;
 }
