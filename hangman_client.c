@@ -98,20 +98,19 @@ int main(int argc, char *argv[]){
     if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
         error("ERROR writing to socket");
     while(1){
-        bzero(buffer,MAX);
+        memset(buffer, 0, MAX + 1);
         buffer[MAX-1]='\0';
         //Read the reply
-        if (read(sockfd,buffer,MAX-1) < 0){
+        if (read(sockfd,buffer,MAX) < 0){
              error("ERROR reading from socket");
        
         }
         int msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
         if(msg_flag){
-            printf("Size: %d", msg_flag);
-            for (int i=0;i< msg_flag; i++){
-                printf("%c",buffer[i+1]);
-            }
+            /*for (int i=0;i< msg_flag; i++){
+                printf("%c",buffer[i]);
+            }*/
         	printf("%s\n", buffer+1);
         	//User either won or lost. Terminate loop and kill client
         	break;

@@ -90,11 +90,13 @@ void pick_from_file(char *word){
 // Send a string only message
 void send_string_msg(int client_fd, int msg_len, char *msg){
 	printf("send_string_msg(): start\n");
-	char str_msg[MAX_MSG_SIZE];
+	char str_msg[MAX_MSG_SIZE+1];
+	memset(str_msg, 0, MAX_MSG_SIZE+1);
 	str_msg[0] = msg_len;
-	for(int i = 0; i < msg_len; i++){
-		str_msg[i] = msg[i];
+	for(int i = 0; i <=msg_len; i++){
+		str_msg[i+1] = msg[i];
 	}
+	str_msg[msg_len+1]='\0';
 	printf("Sending client msg: %s\n", msg);
 	write(client_fd, str_msg, MAX_MSG_SIZE);
 }
@@ -112,6 +114,7 @@ void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word
 	for(int i = 0; i < num_incorrect; i++){
 		cntl_msg[i + 3 + word_len] = incorrect[i];
 	}
+	printf("Flag: %d\n", cntl_msg[0]);
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
 }
@@ -154,6 +157,7 @@ void* handle_client(void *arg){
 	while(!done){
 
 		send_control_msg(client_fd, strlen(word), strlen(incorrect), actual_word, incorrect);
+
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
 		if(n <= 0){  // Client disconnected
@@ -173,7 +177,7 @@ void* handle_client(void *arg){
 			if(num_correct == strlen(actual_word)){  // Client won
 				printf("handle_client(): Client wins\n");
 				send_string_msg(client_fd, 8, "You Win!");
-				send_string_msg(client_fd, 10, "Game Over!");
+				//send_string_msg(client_fd, 10, "Game Over!");
 				done = 1;
 			}
 			if(num_changed == 0){
