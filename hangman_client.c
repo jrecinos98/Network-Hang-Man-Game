@@ -79,12 +79,11 @@ int main(int argc, char *argv[]){
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR");
 
-    char start[1];
+    char start[MAX];
 
     //Ask user to initiate game
     printf("Ready to start game? (y/n)\n");
-    fgets(start,1,stdin);
-
+    fgets(start,MAX,stdin);
     //End the client if the user doesnt input y
     if (start[0] != 'y'){
     	return 0;
