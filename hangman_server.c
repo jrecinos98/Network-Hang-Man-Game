@@ -59,13 +59,30 @@ void pick_from_file(char *word){
 }
 
 // Send a string only message
-void send_string_msg(int msg_len, char *msg){
+void send_string_msg(int client_fd, int msg_len, char *msg){
 	printf("send_string_msg(): STUB\n");
+	char str_msg[MAX_MSG_SIZE];
+	str_msg[0] = msg_len;
+	for(int i = 0; i < msg_len; i++){
+		str_msg[i] = msg[i];
+	}
+	write(client_fd, str_msg, MAX_MSG_SIZE);
 }
 
 // Send a game control message with proper fields
 void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word, char *incorrect){
 	printf("send_control_msg(): STUB\n");
+	char cntl_msg[MAX_MSG_SIZE];
+	cntl_msg[0] = 0;
+	cntl_msg[1] = word_len;
+	cntl_msg[2] = num_incorrect;
+	for(int i = 3; i < word_len; i++){
+		cntl_msg[i] = word[i];
+	}
+	for(int i = 3 + word_len; i < num_incorrect, i++){
+		cntl_msg[i] = incorrect[i];
+	}
+	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
 }
 
@@ -123,13 +140,13 @@ void* handle_client(void *arg){
 			num_correct += num_changed;
 			if(num_correct == strlen(actual_word)){  // Client won
 				printf("handle_client(): Client wins\n");
-
+				send_string_msg(client_fd, "You Win!", 8);
 				done = 1;
 			}
 			if(num_changed == 0){
 				if(strlen(incorrect) == MAX_INCORRECT - 1){  // Client lost
 					printf("handle_client(): Client loses\n");
-
+					send_string_msg(client_fd, "You Lose.", 9);
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
@@ -137,6 +154,9 @@ void* handle_client(void *arg){
 			}
 		}
 	}
+
+	send_string_msg(client_fd, "Game Over!", 10);
+
 	close(client_fd);
 	printf("handle_client(): Exiting\n");
 
