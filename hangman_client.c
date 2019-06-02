@@ -126,6 +126,7 @@ int main(int argc, char *argv[]){
         while(strlen(guess) != 1 || !is_string(guess)){
         	printf("Letter to guess: ");
        		fgets(guess,MAX, stdin);
+            guess[strlen(guess)-1]='\0';
        		if(strlen(guess) !=1 || !is_string(guess)){
         		printf("Error! Please guess one letter.\n");
        			//Clear wrong values
@@ -135,7 +136,7 @@ int main(int argc, char *argv[]){
         //Format the message
         char message[CLIENT_MSG_SIZE]={1,tolower(guess[0])};
         //Send the message to the server
-        if(write(sockfd,message,strlen(buffer)) < 0){
+        if(write(sockfd,message, CLIENT_MSG_SIZE) < 0){
         	error("ERROR writing to socket");
         }
         
