@@ -18,6 +18,8 @@
 #define IPv4 AF_INET
 #define SERVER_TYPE SOCK_STREAM
 #define MAX 17
+#define MAX_INCORRECT 6
+#define CLIENT_MSG_SIZE 2
 
 void error(const char *msg)
 {
@@ -51,7 +53,7 @@ void get_data(char *buffer,char* data, int word_len){
 	}
 }
 void get_incorrect(char *buffer, char* incorrect){
-	bzero(incorrect,6);
+	bzero(incorrect, MAX_INCORRECT);
 	for(int i=0; i < buffer[1];i++){
 		incorrect[i]= buffer[i+buffer[2]+3]; 
 	}
@@ -88,8 +90,9 @@ int main(int argc, char *argv[]){
     if (start[0] != 'y'){
     	return 0;
     }
+    char init_msg[CLIENT_MSG_SIZE]={0};
     //Write empty message to the server to signal start of game.
-    if (write(sockfd,"0",strlen(buffer)) < 0) 
+    if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
         error("ERROR writing to socket");
     while(1){
         bzero(buffer,MAX);
@@ -107,8 +110,8 @@ int main(int argc, char *argv[]){
         }
         //else it is a normal game control packet
         int word_len= buffer[1];
-        char data[word_len];
-        char incorrect[6];
+        char data[word_len+1];
+        char incorrect[MAX_INCORRECT];
         //Extract the word data from buffer
         get_data(buffer, data, word_len);
         //Extract the incorrect characters
@@ -116,7 +119,7 @@ int main(int argc, char *argv[]){
 
         //Print info
         printf("%s\n", data);
-        printf("incorrect Guesses: %s\n\n", incorrect);
+        printf("Incorrect Guesses: %s\n\n", incorrect);
 
         char guess[MAX]={0};
         //Loop until 1 char input is given
@@ -130,7 +133,7 @@ int main(int argc, char *argv[]){
        		}
         }
         //Format the message
-        char message[2]={1,tolower(guess[0])};
+        char message[CLIENT_MSG_SIZE]={1,tolower(guess[0])};
         //Send the message to the server
         if(write(sockfd,message,strlen(buffer)) < 0){
         	error("ERROR writing to socket");
