@@ -30,6 +30,18 @@ int is_string(char * buf){
      strtol(buf, &end,10);
      return end == buf;
 }
+int set_addr(struct sockaddr_in *address, int portNum, char ip_addr[]){
+    struct hostent *hp = gethostbyname(ip_addr);
+    if(hp == 0){
+        return -1;
+    }
+    address->sin_family= IPv4;
+    //htons() used to make sure little endian machines will pass in the correct port number
+    address->sin_port= htons(portNum);
+    //Will get assigned to the server adress
+    bcopy((char*) hp->h_addr, (char*) &address->sin_addr.s_addr, hp->h_length) ;
+    return 0;
+}
 void get_data(char *buffer,char* data, int word_len){
 	bzero(data, word_len);
 	if(word_len > 0){
@@ -44,18 +56,7 @@ void get_incorrect(char *buffer, char* incorrect){
 		incorrect[i]= buffer[i+buffer[2]+3]; 
 	}
 }
-int set_addr(struct sockaddr_in *address, int portNum, char ip_addr[]){
-    struct hostent *hp = gethostbyname(ip_addr);
-    if(hp == 0){
-        return -1;
-    }
-    address->sin_family= IPv4;
-    //htons() used to make sure little endian machines will pass in the correct port number
-    address->sin_port= htons(portNum);
-    //Will get assigned to the server adress
-    bcopy((char*) hp->h_addr, (char*) &address->sin_addr.s_addr, hp->h_length) ;
-    return 0;
-}
+
 int main(int argc, char *argv[]){
 	int sockfd;
     struct sockaddr_in serv_addr;
