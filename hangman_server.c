@@ -20,6 +20,8 @@
 #define MAX_WORD_SIZE 8
 #define CLI_MSG_SIZE 2
 #define MAX_INCORRECT 6
+#define MAX_WORDS_FILE 15
+#define TEXT_FILE "hangman_words.txt"
 
 
 typedef struct worker_thread {
@@ -55,6 +57,26 @@ void init_workers(WorkerThread workers[]){
 // Read input from hangman text file and place selected word in word
 void pick_from_file(char *word){
 	printf("pick_from_file(): STUB\n");
+	int num_words = 0;
+	char **file_words = malloc(MAX_WORDS_FILE * sizeof(char*));
+	FILE *fp;
+	fp = fopen(TEXT_FILE, "r");
+	if(fp == NULL){
+		printf("pick_from_file(): ERROR reading file\n");
+	}
+	file_words[num_words] = malloc(MAX_WORD_SIZE);
+	while (fgets(file_words[num_words], MAX_WORD_SIZE, fp)) {
+		if(num_words < 14){
+    	    num_words++;
+	        file_words[num_words] = malloc(MAX_WORD_SIZE);
+		}
+    }
+    if(read == -1){
+    	perror("pick_from_file()");
+    }
+
+    fclose(fp);
+
 	strcpy(word, "STUBWORD\0");
 }
 
@@ -79,7 +101,7 @@ void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word
 	for(int i = 3; i < word_len; i++){
 		cntl_msg[i] = word[i];
 	}
-	for(int i = 3 + word_len; i < num_incorrect, i++){
+	for(int i = 3 + word_len; i < num_incorrect; i++){
 		cntl_msg[i] = incorrect[i];
 	}
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
@@ -140,13 +162,13 @@ void* handle_client(void *arg){
 			num_correct += num_changed;
 			if(num_correct == strlen(actual_word)){  // Client won
 				printf("handle_client(): Client wins\n");
-				send_string_msg(client_fd, "You Win!", 8);
+				send_string_msg(client_fd, 8, "You Win!");
 				done = 1;
 			}
 			if(num_changed == 0){
 				if(strlen(incorrect) == MAX_INCORRECT - 1){  // Client lost
 					printf("handle_client(): Client loses\n");
-					send_string_msg(client_fd, "You Lose.", 9);
+					send_string_msg(client_fd, 9, "You Lose.");
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
@@ -155,7 +177,7 @@ void* handle_client(void *arg){
 		}
 	}
 
-	send_string_msg(client_fd, "Game Over!", 10);
+	send_string_msg(client_fd, 10, "Game Over!");
 
 	close(client_fd);
 	printf("handle_client(): Exiting\n");
@@ -230,12 +252,9 @@ int main(int argc, char *argv[]){
 		if(!found_thread){  // Currently all threads are busy
 			printf("Could not find open thread\n");
 			char *msg = "server-overloaded";
-			send_string_msg(strlen(msg), msg);
+			send_string_msg(newsockfd, strlen(msg), msg);
 			close(newsockfd);
 		}
-
-		//n = read(newsockfd,buffer,BUF_SIZE);
-		//write(newsockfd, msg, BUF_SIZE);
 	}
 	return 0;
 }
