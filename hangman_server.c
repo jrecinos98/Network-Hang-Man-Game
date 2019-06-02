@@ -22,6 +22,7 @@
 typedef struct worker_thread {
 	int done;
 	int socket_fd;
+	int worker_num;
 	pthread_t tid;
 	char word[256];
 	char actual_word[256];
@@ -34,10 +35,9 @@ void error(const char *msg)
 	exit(1);
 }
 
-// Run by each worker thread to handle playing game with a single client
-void* handle_client(){
+// Read input from hangman text file and place selected word in word
+void read_from_file(char *word){
 	printf("STUB\n");
-	return NULL;
 }
 
 void send_string_msg(int msg_len, char *msg){
@@ -46,6 +46,12 @@ void send_string_msg(int msg_len, char *msg){
 
 void send_control_msg(int word_len, int num_correct, char *word, char *incorrect){
 	printf("STUB\n");
+}
+
+// Run by each worker thread to handle playing game with a single client
+void* handle_client(){
+	printf("STUB\n");
+	return NULL;
 }
 
 // Data structures for worker management and synchronization
@@ -107,6 +113,7 @@ int main(int argc, char *argv[]){
 				pthread_create(&workers[i].tid, NULL, handle_client, NULL);  // Start new thread
 				workers[i].done = 0;  // Not done
 				workers[i].socket_fd = newsockfd;  // For talking to client
+				workers[i].worker_num = i;  // Index in array for thread's data
 				memset(workers[i].word, 0, 256);  // Clear old word
 				memset(workers[i].actual_word, 0, 256);  // Clear old word
 				memset(workers[i].incorrect, 0, 6);
