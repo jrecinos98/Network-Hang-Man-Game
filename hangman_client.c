@@ -101,13 +101,13 @@ int main(int argc, char *argv[]){
         bzero(buffer,MAX);
         buffer[MAX-1]='\0';
         //Read the reply
-        if (read(sockfd,buffer,MAX-1) < 0){
+        if (read(sockfd,buffer,MAX) < 0){
              error("ERROR reading from socket");
        
         }
-        int msg_flag= buffer[0];
+        char msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
-        if(msg_flag){
+        if(msg_flag != 0){
         	printf("%s\n", buffer+1);
         	//User either won or lost. Terminate loop and kill client
         	break;
