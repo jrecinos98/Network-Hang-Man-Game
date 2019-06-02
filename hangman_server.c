@@ -57,7 +57,6 @@ void init_workers(WorkerThread workers[]){
 
 // Read input from hangman text file and place selected word in word
 void pick_from_file(char *word){
-	printf("pick_from_file(): STUB\n");
 	int num_words = 0;
 	char **file_words = malloc(MAX_WORDS_FILE * sizeof(char*));
 	FILE *fp;
@@ -67,6 +66,7 @@ void pick_from_file(char *word){
 	}
 	file_words[num_words] = malloc(MAX_WORD_SIZE);
 	while (fgets(file_words[num_words], MAX_WORD_SIZE, fp)) {
+		file_words[num_words][strlen(file_words[num_words])-1] = '\0';
 		if(num_words < 14){
     	    num_words++;
 	        file_words[num_words] = malloc(MAX_WORD_SIZE);
@@ -144,12 +144,13 @@ void* handle_client(void *arg){
 	if(n <= 0 || cli_msg[0] != 0){
 		fprintf(stderr, "ERROR: Improper client start message\n");
 		close(client_fd);
-		return NULL;
+		done = 1;
 	}
 
-	printf("handle_client(): Received start msg -- starting game\n");
 	
 	while(!done){
+		printf("handle_client(): Received start msg -- starting game\n");
+
 		send_control_msg(client_fd, strlen(word), strlen(incorrect), word, incorrect);
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
@@ -187,6 +188,8 @@ void* handle_client(void *arg){
 
 	close(client_fd);
 	printf("handle_client(): Exiting\n");
+
+	workers[worker_num].done = 1;
 
 	return NULL;
 }
@@ -239,7 +242,7 @@ int main(int argc, char *argv[]){
 			error("ERROR on accept");
 
 		int found_thread = 0;
-		for(int i = 0; i < MAX_CLIENTS; ++i){  // Find an available thread
+		for(int i = 0; i < MAX_CLIENTS && !found_thread; ++i){  // Find an available thread
 			LOCK_MUTEX;
 			if(workers[i].done){  // This thread can accept a client
 				if(workers[i].initialized){
@@ -251,6 +254,7 @@ int main(int argc, char *argv[]){
 				workers[i].done = 0;  // Not done
 				workers[i].socket_fd = newsockfd;  // For talking to client
 				workers[i].initialized = 1;  // Needs to be cleaned on exit
+				found_thread = 1;
 			}
 			UNLOCK_MUTEX;
 		}
