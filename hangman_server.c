@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <ctype.h>
 #include <pthread.h>
+#include <time.h>
 
 #define MAX_CLIENTS 3  // Max number of clients that can be simultaneously connected
 #define MAX_MSG_SIZE 17
@@ -69,15 +70,20 @@ void pick_from_file(char *word){
 		if(num_words < 14){
     	    num_words++;
 	        file_words[num_words] = malloc(MAX_WORD_SIZE);
+		}else{
+			num_words++;
 		}
     }
-    if(read == -1){
-    	perror("pick_from_file()");
-    }
-
+    int pick_word = rand() % num_words;
     fclose(fp);
 
-	strcpy(word, "STUBWORD\0");
+	strcpy(word, file_words[pick_word]);
+	printf("pick_from_file(): picked %s\n", file_words[pick_word]);
+
+	for(int i = 0; i < num_words; i++){
+		free(file_words[i]);
+	}
+	free(file_words);
 }
 
 // Send a string only message
@@ -188,7 +194,7 @@ void* handle_client(void *arg){
 
 
 int main(int argc, char *argv[]){
-
+	srand(time(0));
 	// Set up vars for server socket and connection socket
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
