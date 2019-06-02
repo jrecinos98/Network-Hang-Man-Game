@@ -18,6 +18,7 @@
 
 #define MAX_CLIENTS 3  // Max number of clients that can be simultaneously connected
 #define MAX_MSG_SIZE 17
+#define MAX_STR_MSG_SIZE 50
 #define MAX_WORD_SIZE 8
 #define CLI_MSG_SIZE 2
 #define MAX_INCORRECT 6
@@ -91,12 +92,11 @@ void pick_from_file(char *word){
 // Send a string only message
 void send_string_msg(int client_fd, int msg_len, char *msg){
 	printf("send_string_msg(): start\n");
-	char str_msg[MAX_MSG_SIZE];
+	char str_msg[MAX_STR_MSG_SIZE];
 	str_msg[0] = msg_len;
 	for(int i = 0; i < msg_len; i++){
-		str_msg[i] = msg[i];
+		str_msg[i+1] = msg[i];
 	}
-	printf("Sending client msg: %s\n", msg);
 	write(client_fd, str_msg, MAX_MSG_SIZE);
 }
 
@@ -155,7 +155,7 @@ void* handle_client(void *arg){
 	
 	while(!done){
 
-		send_control_msg(client_fd, strlen(word), strlen(incorrect), actual_word, incorrect);
+		send_control_msg(client_fd, strlen(word), strlen(incorrect), word, incorrect);
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
 		if(n <= 0){  // Client disconnected

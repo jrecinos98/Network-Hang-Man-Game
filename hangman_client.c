@@ -108,11 +108,19 @@ int main(int argc, char *argv[]){
         char msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
         if(msg_flag){
-            printf("Size: %d", msg_flag);
             for (int i=0;i< msg_flag; i++){
                 printf("%c",buffer[i+1]);
             }
-        	printf("%s\n", buffer+1);
+            printf("\n");
+            if (read(sockfd,buffer,MAX) < 0){
+             	error("ERROR reading from socket");
+        	}
+        	msg_flag= buffer[0];
+            for (int i=0;i< msg_flag; i++){
+                printf("%c",buffer[i+1]);
+            }
+            printf("\n");
+            
         	//User either won or lost. Terminate loop and kill client
         	break;
         }
@@ -128,7 +136,10 @@ int main(int argc, char *argv[]){
         get_incorrect(buffer, incorrect);
 
         //Print info
-        printf("%s\n", data);
+        for(int i = 0; i < word_len - 1; i++){
+        	printf("%c ", data[i]);
+        }
+        printf("%c\n", data[word_len-1]);
         printf("Incorrect Guesses: %s\n\n", incorrect);
 
         char guess[MAX]={0};
