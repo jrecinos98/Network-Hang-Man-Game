@@ -97,7 +97,7 @@ void send_string_msg(int client_fd, int msg_len, char *msg){
 	for(int i = 0; i < msg_len; i++){
 		str_msg[i+1] = msg[i];
 	}
-	write(client_fd, str_msg, MAX_STR_MSG_SIZE);
+	write(client_fd, str_msg, strlen(msg)+1);
 }
 
 // Send a game control message with proper fields
@@ -118,7 +118,30 @@ void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
 }
+//Forats the message to reveal to the user when game is over
+void word_message(char *message, char* actual_word){
+	memset(message, 0, MAX_STR_MSG_SIZE+1);
+	const char* msg= "The word was";
+	char spc_word[2*strlen(actual_word)];
+	memset(spc_word,0, 2*strlen(actual_word));
+	int odd=1;
+	int even=0;
+	for(int i=0; i < strlen(actual_word);i++){
+		spc_word[even]=' ';
+		spc_word[odd]= actual_word[i];
+		even+=2;
+		odd+=2;
+	}
+	spc_word[2*strlen(actual_word)]='\0';
+	//copy the const string
+	strcpy(message, msg);
+	//copy the spaced word
+	strcat(message,spc_word);
+	printf("Word: %s\n", message);
 
+
+
+}
 // Run by each worker thread to handle playing game with a single client
 void* handle_client(void *arg){
 	char word[MAX_WORD_SIZE + 1];
@@ -176,6 +199,12 @@ void* handle_client(void *arg){
 			num_correct += num_changed;
 			if(num_correct == strlen(actual_word)){  // Client won
 				printf("handle_client(): Client wins\n");
+				
+				char word_msg[MAX_STR_MSG_SIZE+1];
+				//Format string that reveals word
+				word_message(word_msg, actual_word);
+				send_string_msg(client_fd, strlen(word_msg),word_msg);
+				
 				send_string_msg(client_fd, 8, "You Win!");
 				send_string_msg(client_fd, 10, "Game Over!");
 				done = 1;
@@ -184,8 +213,14 @@ void* handle_client(void *arg){
 				num_incorrect++;
 				if(num_incorrect == MAX_INCORRECT){  // Client lost
 					printf("handle_client(): Client loses\n");
-					send_string_msg(client_fd, 9, "You Lose.");
-					send_string_msg(client_fd, 10, "Game Over!");
+
+					char word_msg[MAX_STR_MSG_SIZE+1];
+					//Format string that reveals word
+					word_message(word_msg, actual_word);
+					send_string_msg(client_fd, strlen(word_msg),word_msg);
+				
+					send_string_msg(client_fd, 9, "You Lose.\0");
+					send_string_msg(client_fd, 10, "Game Over!\0");
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");

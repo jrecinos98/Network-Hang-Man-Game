@@ -17,7 +17,7 @@
 
 #define IPv4 AF_INET
 #define SERVER_TYPE SOCK_STREAM
-#define MAX 17
+#define MAX 50
 #define MAX_INCORRECT 6
 #define CLIENT_MSG_SIZE 2
 
