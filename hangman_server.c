@@ -63,13 +63,14 @@ void pick_from_file(char *word){
 	fp = fopen(TEXT_FILE, "r");
 	if(fp == NULL){
 		printf("pick_from_file(): ERROR reading file\n");
+		fflush(stdout);
 	}
-	file_words[num_words] = malloc(MAX_WORD_SIZE);
-	while (fgets(file_words[num_words], MAX_WORD_SIZE, fp)) {
+	file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
+	while (fgets(file_words[num_words], MAX_WORD_SIZE + 2, fp)) {
 		file_words[num_words][strlen(file_words[num_words])-1] = '\0';
 		if(num_words < 14){
     	    num_words++;
-	        file_words[num_words] = malloc(MAX_WORD_SIZE);
+	        file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
 		}else{
 			num_words++;
 		}
@@ -99,7 +100,7 @@ void send_string_msg(int client_fd, int msg_len, char *msg){
 
 // Send a game control message with proper fields
 void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word, char *incorrect){
-	printf("send_control_msg(): STUB\n");
+	printf("send_control_msg():\n");
 	char cntl_msg[MAX_MSG_SIZE];
 	cntl_msg[0] = 0;
 	cntl_msg[1] = word_len;
@@ -151,7 +152,7 @@ void* handle_client(void *arg){
 	while(!done){
 		printf("handle_client(): Received start msg -- starting game\n");
 
-		send_control_msg(client_fd, strlen(word), strlen(incorrect), word, incorrect);
+		send_control_msg(client_fd, strlen(word), strlen(incorrect), actual_word, incorrect);
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
 		if(n <= 0){  // Client disconnected
