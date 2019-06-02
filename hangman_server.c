@@ -43,6 +43,7 @@ pthread_mutex_t lock;
 void error(const char *msg)
 {
 	perror(msg);
+
 }
 
 // Set up initial worker states
@@ -266,8 +267,10 @@ int main(int argc, char *argv[]){
 
 	// Bind to port so same port is always used
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,
-			 sizeof(serv_addr)) < 0) 
-			 error("ERROR on binding");
+			 sizeof(serv_addr)) < 0) {
+			error("ERROR on binding");
+			exit(1);
+		}
 
 	// Listen for any incoming connections
 	listen(sockfd,5);

@@ -24,6 +24,7 @@
 void error(const char *msg)
 {
     perror(msg);
+
     exit(1);
 }
 
@@ -58,6 +59,14 @@ void get_incorrect(char *buffer, char* incorrect){
 		incorrect[i]= buffer[i+buffer[1]+3]; 
 	}
 }
+void print_message(char *buffer){
+    int msg_flag=buffer[0];
+    for (int i=0;i< msg_flag; i++){
+        printf("%c",buffer[i+1]);
+    }
+    printf("\n");
+
+}
 
 int main(int argc, char *argv[]){
 	int sockfd;
@@ -85,7 +94,7 @@ int main(int argc, char *argv[]){
     start[MAX-1]='\0';
 
     //Ask user to initiate game
-    printf("Ready to start game? (y/n)\n");
+    printf("Ready to start game? (y/n): ");
     fgets(start,MAX,stdin);
     printf("\n");
     //End the client if the user doesnt input y
@@ -96,30 +105,35 @@ int main(int argc, char *argv[]){
     init_msg[CLIENT_MSG_SIZE]='\0';
     //Write empty message to the server to signal start of game.
     if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
-        error("ERROR writing to socket");
+        error("ERROR: can't write to socket\n");
     while(1){
         memset(buffer, 0, MAX + 1);
         buffer[MAX-1]='\0';
         //Read the reply
-        if (read(sockfd,buffer,MAX) < 0){
-             error("ERROR reading from socket");
-       
+        if (read(sockfd,buffer,MAX) <= 0){
+             printf("ERROR: can't read from socket\n");       
         }
         char msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
         if(msg_flag){
-            for (int i=0;i< msg_flag; i++){
-                printf("%c",buffer[i+1]);
-            }
-            printf("\n");
-            if (read(sockfd,buffer,MAX) < 0){
-             	error("ERROR reading from socket");
+            //Reveal the word
+            print_message(buffer);
+            memset(buffer, 0, MAX + 1);
+
+            //Read the next message (Win or lose message)
+            if (read(sockfd,buffer,MAX) <= 0){
+             	printf("ERROR: can't read from socket\n");
         	}
-        	msg_flag= buffer[0];
-            for (int i=0;i< msg_flag; i++){
-                printf("%c",buffer[i+1]);
+            //print win/lose message
+        	print_message(buffer);
+            memset(buffer, 0, MAX + 1);
+/*
+            //Read the game over message
+            if (read(sockfd,buffer,MAX) <= 0){
+                printf("ERROR: can't read from socket\n");
             }
-            printf("\n");
+            //print game over
+            print_message(buffer);*/
         	//User either won or lost. Terminate loop and kill client
         	break;
         }
