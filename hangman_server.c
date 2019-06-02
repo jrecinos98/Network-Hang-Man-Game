@@ -173,6 +173,7 @@ void* handle_client(void *arg){
 			if(num_correct == strlen(actual_word)){  // Client won
 				printf("handle_client(): Client wins\n");
 				send_string_msg(client_fd, 8, "You Win!");
+				send_string_msg(client_fd, 10, "Game Over!");
 				done = 1;
 			}
 			if(num_changed == 0){
@@ -180,6 +181,7 @@ void* handle_client(void *arg){
 				if(num_incorrect == MAX_INCORRECT){  // Client lost
 					printf("handle_client(): Client loses\n");
 					send_string_msg(client_fd, 9, "You Lose.");
+					send_string_msg(client_fd, 10, "Game Over!");
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
@@ -187,9 +189,6 @@ void* handle_client(void *arg){
 			}
 		}
 	}
-
-	send_string_msg(client_fd, 10, "Game Over!");
-	sleep(1000);
 	printf("handle_client(): Exiting\n");
 	fflush(stdout);
 
@@ -241,7 +240,6 @@ int main(int argc, char *argv[]){
 		newsockfd = accept(sockfd, 
 					(struct sockaddr *) &cli_addr, 
 					&clilen);
-		sleep(1);
 		if (newsockfd < 0) 
 			error("ERROR on accept");
 
