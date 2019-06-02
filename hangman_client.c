@@ -107,7 +107,11 @@ int main(int argc, char *argv[]){
         }
         char msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
-        if(msg_flag != 0){
+        if(msg_flag){
+            printf("Size: %d", msg_flag);
+            for (int i=0;i< msg_flag; i++){
+                printf("%c",buffer[i+1]);
+            }
         	printf("%s\n", buffer+1);
         	//User either won or lost. Terminate loop and kill client
         	break;
