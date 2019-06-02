@@ -24,9 +24,7 @@ typedef struct worker_thread {
 	int socket_fd;
 	int worker_num;
 	pthread_t tid;
-	char word[256];
-	char actual_word[256];
-	char incorrect[6];
+
 } WorkerThread;
 
 void error(const char *msg)
@@ -36,7 +34,7 @@ void error(const char *msg)
 }
 
 // Read input from hangman text file and place selected word in word
-void read_from_file(char *word){
+void pick_from_file(char *word){
 	printf("STUB\n");
 }
 
@@ -50,6 +48,13 @@ void send_control_msg(int word_len, int num_correct, char *word, char *incorrect
 
 // Run by each worker thread to handle playing game with a single client
 void* handle_client(){
+	char word[256];
+	char actual_word[256];
+	char incorrect[6];
+	int num_guesses;
+
+	pick_from_file(actual_word);
+
 	printf("STUB\n");
 	return NULL;
 }
@@ -114,9 +119,6 @@ int main(int argc, char *argv[]){
 				workers[i].done = 0;  // Not done
 				workers[i].socket_fd = newsockfd;  // For talking to client
 				workers[i].worker_num = i;  // Index in array for thread's data
-				memset(workers[i].word, 0, 256);  // Clear old word
-				memset(workers[i].actual_word, 0, 256);  // Clear old word
-				memset(workers[i].incorrect, 0, 6);
 			}
 			UNLOCK_MUTEX;
 		}
