@@ -97,7 +97,7 @@ void send_string_msg(int client_fd, int msg_len, char *msg){
 	for(int i = 0; i < msg_len; i++){
 		str_msg[i+1] = msg[i];
 	}
-	write(client_fd, str_msg, MAX_MSG_SIZE);
+	write(client_fd, str_msg, MAX_STR_MSG_SIZE);
 }
 
 // Send a game control message with proper fields
