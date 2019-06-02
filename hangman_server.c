@@ -89,27 +89,28 @@ void pick_from_file(char *word){
 
 // Send a string only message
 void send_string_msg(int client_fd, int msg_len, char *msg){
-	printf("send_string_msg(): STUB\n");
+	printf("send_string_msg(): start\n");
 	char str_msg[MAX_MSG_SIZE];
 	str_msg[0] = msg_len;
 	for(int i = 0; i < msg_len; i++){
 		str_msg[i] = msg[i];
 	}
+	printf("Sending client msg: %s\n", msg);
 	write(client_fd, str_msg, MAX_MSG_SIZE);
 }
 
 // Send a game control message with proper fields
 void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word, char *incorrect){
-	printf("send_control_msg():\n");
+	printf("send_control_msg(): start\n");
 	char cntl_msg[MAX_MSG_SIZE];
 	cntl_msg[0] = 0;
 	cntl_msg[1] = word_len;
 	cntl_msg[2] = num_incorrect;
-	for(int i = 3; i < word_len; i++){
-		cntl_msg[i] = word[i];
+	for(int i = 0; i < word_len; i++){
+		cntl_msg[i+3] = word[i];
 	}
-	for(int i = 3 + word_len; i < num_incorrect; i++){
-		cntl_msg[i] = incorrect[i];
+	for(int i = 0; i < num_incorrect; i++){
+		cntl_msg[i + 3 + word_len] = incorrect[i];
 	}
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
@@ -123,6 +124,7 @@ void* handle_client(void *arg){
 	memset(incorrect, 0, MAX_INCORRECT + 1);
 	char cli_msg[CLI_MSG_SIZE];
 	int num_correct = 0;
+	int num_incorrect = 0;
 	int done = 0;
 
 	int worker_num = *((int*)arg);
@@ -150,12 +152,12 @@ void* handle_client(void *arg){
 
 	
 	while(!done){
-		printf("handle_client(): Received start msg -- starting game\n");
 
 		send_control_msg(client_fd, strlen(word), strlen(incorrect), actual_word, incorrect);
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
 		if(n <= 0){  // Client disconnected
+			printf("handle_client(): client disconnected\n");
 			break;
 		}
 
@@ -174,21 +176,22 @@ void* handle_client(void *arg){
 				done = 1;
 			}
 			if(num_changed == 0){
-				if(strlen(incorrect) == MAX_INCORRECT - 1){  // Client lost
+				num_incorrect++;
+				if(num_incorrect == MAX_INCORRECT){  // Client lost
 					printf("handle_client(): Client loses\n");
 					send_string_msg(client_fd, 9, "You Lose.");
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
-				incorrect[strlen(incorrect)] = toupper(cli_msg[1]);
+				incorrect[num_incorrect-1] = toupper(cli_msg[1]);
 			}
 		}
 	}
 
 	send_string_msg(client_fd, 10, "Game Over!");
-
-	close(client_fd);
+	sleep(1000);
 	printf("handle_client(): Exiting\n");
+	fflush(stdout);
 
 	workers[worker_num].done = 1;
 
