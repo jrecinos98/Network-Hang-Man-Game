@@ -98,7 +98,7 @@ int main(int argc, char *argv[]){
     if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
         error("ERROR writing to socket");
     while(1){
-        bzero(buffer,MAX);
+        memset(buffer, 0, MAX + 1);
         buffer[MAX-1]='\0';
         //Read the reply
         if (read(sockfd,buffer,MAX) < 0){
@@ -120,7 +120,6 @@ int main(int argc, char *argv[]){
                 printf("%c",buffer[i+1]);
             }
             printf("\n");
-            
         	//User either won or lost. Terminate loop and kill client
         	break;
         }

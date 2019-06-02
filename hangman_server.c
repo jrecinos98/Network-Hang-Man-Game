@@ -113,6 +113,7 @@ void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word
 	for(int i = 0; i < num_incorrect; i++){
 		cntl_msg[i + 3 + word_len] = incorrect[i];
 	}
+
 	printf("cntl_msg[0]=%d\n", cntl_msg[0]);
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
@@ -156,6 +157,7 @@ void* handle_client(void *arg){
 	while(!done){
 
 		send_control_msg(client_fd, strlen(word), strlen(incorrect), word, incorrect);
+
 		n = read(client_fd,cli_msg,CLI_MSG_SIZE);
 
 		if(n <= 0){  // Client disconnected
