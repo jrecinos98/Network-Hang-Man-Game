@@ -231,11 +231,10 @@ int main(int argc, char *argv[]){
 
 	while(1){  // Loop to continuously accept clients after one disconnects
 		// Accept a new client to receive strings from
-		// newsockfd = accept(sockfd, 
-		// 			(struct sockaddr *) &cli_addr, 
-		// 			&clilen);
+		newsockfd = accept(sockfd, 
+					(struct sockaddr *) &cli_addr, 
+					&clilen);
 		sleep(1);
-		newsockfd = 1;
 		if (newsockfd < 0) 
 			error("ERROR on accept");
 
