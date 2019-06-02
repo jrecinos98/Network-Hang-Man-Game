@@ -54,20 +54,20 @@ void get_data(char *buffer,char* data, int word_len){
 }
 void get_incorrect(char *buffer, char* incorrect){
 	bzero(incorrect, MAX_INCORRECT);
-	for(int i=0; i < buffer[1];i++){
-		incorrect[i]= buffer[i+buffer[2]+3]; 
+	for(int i=0; i < buffer[2];i++){
+		incorrect[i]= buffer[i+buffer[1]+3]; 
 	}
 }
 
 int main(int argc, char *argv[]){
 	int sockfd;
     struct sockaddr_in serv_addr;
-    char buffer[MAX];
-    bzero(buffer,MAX);
+    char buffer[MAX+1];
     if (argc < 3) {
        fprintf(stderr,"USAGE: %s hostname port\n", argv[0]);
        exit(0);
     }
+
     sockfd = socket(IPv4, SERVER_TYPE, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
@@ -82,20 +82,24 @@ int main(int argc, char *argv[]){
         error("ERROR");
 
     char start[MAX];
+    start[MAX-1]='\0';
 
     //Ask user to initiate game
     printf("Ready to start game? (y/n)\n");
     fgets(start,MAX,stdin);
+    printf("\n");
     //End the client if the user doesnt input y
     if (start[0] != 'y'){
     	return 0;
     }
-    char init_msg[CLIENT_MSG_SIZE]={0};
+    char init_msg[CLIENT_MSG_SIZE+1]={0};
+    init_msg[CLIENT_MSG_SIZE]='\0';
     //Write empty message to the server to signal start of game.
     if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
         error("ERROR writing to socket");
     while(1){
         bzero(buffer,MAX);
+        buffer[MAX-1]='\0';
         //Read the reply
         if (read(sockfd,buffer,MAX-1) < 0){
              error("ERROR reading from socket");
@@ -111,7 +115,9 @@ int main(int argc, char *argv[]){
         //else it is a normal game control packet
         int word_len= buffer[1];
         char data[word_len+1];
-        char incorrect[MAX_INCORRECT];
+        data[word_len]='\0';
+        char incorrect[MAX_INCORRECT+1];
+        incorrect[MAX_INCORRECT]='\0';
         //Extract the word data from buffer
         get_data(buffer, data, word_len);
         //Extract the incorrect characters
@@ -122,6 +128,7 @@ int main(int argc, char *argv[]){
         printf("Incorrect Guesses: %s\n\n", incorrect);
 
         char guess[MAX]={0};
+        guess[MAX-1]='\0';
         //Loop until 1 char input is given
         while(strlen(guess) != 1 || !is_string(guess)){
         	printf("Letter to guess: ");
@@ -134,7 +141,8 @@ int main(int argc, char *argv[]){
        		}
         }
         //Format the message
-        char message[CLIENT_MSG_SIZE]={1,tolower(guess[0])};
+        char message[CLIENT_MSG_SIZE+1]={1,tolower(guess[0])};
+        message[CLIENT_MSG_SIZE]='\0';
         //Send the message to the server
         if(write(sockfd,message, CLIENT_MSG_SIZE) < 0){
         	error("ERROR writing to socket");
