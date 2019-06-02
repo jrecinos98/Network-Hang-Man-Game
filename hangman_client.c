@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
     }
     char init_msg[CLIENT_MSG_SIZE]={0};
     //Write empty message to the server to signal start of game.
-    if (write(sockfd,init_msg,strlen(buffer)) < 0) 
+    if (write(sockfd,init_msg,CLIENT_MSG_SIZE) < 0) 
         error("ERROR writing to socket");
     while(1){
         bzero(buffer,MAX);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
         }
         //else it is a normal game control packet
         int word_len= buffer[1];
-        char data[word_len];
+        char data[word_len+1];
         char incorrect[MAX_INCORRECT];
         //Extract the word data from buffer
         get_data(buffer, data, word_len);
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]){
 
         //Print info
         printf("%s\n", data);
-        printf("incorrect Guesses: %s\n\n", incorrect);
+        printf("Incorrect Guesses: %s\n\n", incorrect);
 
         char guess[MAX]={0};
         //Loop until 1 char input is given
