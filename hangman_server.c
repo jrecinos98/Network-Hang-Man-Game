@@ -42,7 +42,6 @@ pthread_mutex_t lock;
 void error(const char *msg)
 {
 	perror(msg);
-	exit(1);
 }
 
 // Set up initial worker states
@@ -67,7 +66,9 @@ void pick_from_file(char *word){
 	}
 	file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
 	while (fgets(file_words[num_words], MAX_WORD_SIZE + 2, fp)) {
-		file_words[num_words][strlen(file_words[num_words])-1] = '\0';
+		if(file_words[num_words][strlen(file_words[num_words])-1] == '\n'){
+			file_words[num_words][strlen(file_words[num_words])-1] = '\0';
+		}
 		if(num_words < 14){
     	    num_words++;
 	        file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
@@ -114,7 +115,8 @@ void send_control_msg(int client_fd, int word_len, int num_incorrect, char *word
 	for(int i = 0; i < num_incorrect; i++){
 		cntl_msg[i + 3 + word_len] = incorrect[i];
 	}
-	printf("Flag: %d\n", cntl_msg[0]);
+
+	printf("cntl_msg[0]=%d\n", cntl_msg[0]);
 	write(client_fd, cntl_msg, MAX_MSG_SIZE);
 
 }
@@ -193,12 +195,13 @@ void* handle_client(void *arg){
 			}
 		}
 	}
+
 	printf("handle_client(): Exiting\n");
 	fflush(stdout);
 
 	workers[worker_num].done = 1;
 
-	return NULL;
+	pthread_exit(NULL);
 }
 
 
@@ -241,6 +244,7 @@ int main(int argc, char *argv[]){
 
 	while(1){  // Loop to continuously accept clients after one disconnects
 		// Accept a new client to receive strings from
+		printf("main(): waiting for connection\n");
 		newsockfd = accept(sockfd, 
 					(struct sockaddr *) &cli_addr, 
 					&clilen);
