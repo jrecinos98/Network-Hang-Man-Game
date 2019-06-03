@@ -101,14 +101,22 @@ int main(int argc, char *argv[]){
 
     char start[MAX];
     start[MAX-1]='\0';
-
-    //Ask user to initiate game
-    printf("Ready to start game? (y/n): ");
-    fgets(start,MAX,stdin);
-    printf("\n");
+    int valid=0;
     //End the client if the user doesnt input y
-    if (start[0] != 'y'){
-    	return 0;
+    while(!valid){
+        //Ask user to initiate game
+        printf("Ready to start game? (y/n): ");
+        fgets(start,MAX,stdin);
+        printf("\n");
+        //fgets includes \n char so size == 2
+        if(tolower(start[0]) == 'y' && strlen(start)==2){
+            valid=1;
+        }
+        //fgets includes \n char so size == 2
+        if(tolower(start[0]) == 'n' && strlen(start)==2){
+            close(sockfd);
+            return 0;
+        }
     }
     char init_msg[CLIENT_MSG_SIZE+1]={0};
     init_msg[CLIENT_MSG_SIZE]='\0';
