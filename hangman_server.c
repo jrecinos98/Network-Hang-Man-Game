@@ -71,12 +71,15 @@ void pick_from_file(char *word){
 		if(file_words[num_words][strlen(file_words[num_words])-1] == '\n'){
 			file_words[num_words][strlen(file_words[num_words])-1] = '\0';
 		}
-		if(num_words < MAX_WORDS_FILE - 1){
-    	    num_words++;
-	        file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
-		}else{
-			num_words++;
+		if(strlen(file_words[num_words]) != 0){  // Skip empty lines
+			if(num_words < MAX_WORDS_FILE - 1){
+	    	    num_words++;
+		        file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
+			}else{
+				num_words++;
+			}	
 		}
+		
     }
     fclose(fp);
     memset(word, 0, MAX_WORD_SIZE);
