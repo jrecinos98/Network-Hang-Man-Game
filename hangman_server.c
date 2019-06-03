@@ -67,11 +67,11 @@ void pick_from_file(char *word){
 		fflush(stdout);
 	}
 	file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
-	while (fgets(file_words[num_words], MAX_WORD_SIZE + 2, fp)) {
+	while ( num_words < MAX_WORDS_FILE && fgets(file_words[num_words], MAX_WORD_SIZE + 2, fp)) {
 		if(file_words[num_words][strlen(file_words[num_words])-1] == '\n'){
 			file_words[num_words][strlen(file_words[num_words])-1] = '\0';
 		}
-		if(num_words < 14){
+		if(num_words < MAX_WORDS_FILE - 1){
     	    num_words++;
 	        file_words[num_words] = malloc(MAX_WORD_SIZE + 2);
 		}else{
