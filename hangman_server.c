@@ -105,7 +105,7 @@ void send_string_msg(int client_fd, int msg_len, char *msg){
 	for(int i = 0; i < msg_len; i++){
 		str_msg[i+1] = msg[i];
 	}
-	write(client_fd, str_msg, strlen(msg)+1);
+	write(client_fd, str_msg, MAX_STR_MSG_SIZE);
 }
 
 // Send a game control message with proper fields
@@ -212,9 +212,9 @@ void* handle_client(void *arg){
 				//Format string that reveals word
 				word_message(word_msg, actual_word);
 				send_string_msg(client_fd, strlen(word_msg),word_msg);
-				
 				send_string_msg(client_fd, 8, "You Win!");
 				send_string_msg(client_fd, 10, "Game Over!");
+
 				done = 1;
 			}
 			if(num_changed == 0){
@@ -240,9 +240,9 @@ void* handle_client(void *arg){
 					//Format string that reveals word
 					word_message(word_msg, actual_word);
 					send_string_msg(client_fd, strlen(word_msg),word_msg);
-				
 					send_string_msg(client_fd, 9, "You Lose.\0");
 					send_string_msg(client_fd, 10, "Game Over!\0");
+					
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
@@ -252,7 +252,7 @@ void* handle_client(void *arg){
 
 	printf("handle_client(): Exiting\n");
 	fflush(stdout);
-
+	close(client_fd);
 	workers[worker_num].done = 1;
 
 	pthread_exit(NULL);
