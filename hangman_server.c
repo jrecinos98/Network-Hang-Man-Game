@@ -78,11 +78,15 @@ void pick_from_file(char *word){
 			num_words++;
 		}
     }
-    int pick_word = rand() % num_words;
     fclose(fp);
+    memset(word, 0, MAX_WORD_SIZE);
+    while(strlen(word) == 0){
+	    int pick_word = rand() % num_words;
 
-	strcpy(word, file_words[pick_word]);
-	printf("pick_from_file(): picked %s\n", file_words[pick_word]);
+		strcpy(word, file_words[pick_word]);
+		printf("pick_from_file(): picked %s\n", file_words[pick_word]);	
+    }
+    
 
 	for(int i = 0; i < num_words; i++){
 		free(file_words[i]);
@@ -188,11 +192,11 @@ void* handle_client(void *arg){
 			printf("handle_client(): client disconnected\n");
 			break;
 		}
-
 		if(cli_msg[0] == 1){  // Client sent a guess
 			int num_changed = 0;
 			for(int i = 0; i < strlen(actual_word); i++){
-				if(tolower(actual_word[i]) == tolower(cli_msg[1])){
+				if(tolower(actual_word[i]) == tolower(cli_msg[1])
+					&& tolower(cli_msg[1] != word[i])){  // Make sure not guessing same word again
 					word[i] = tolower(cli_msg[1]);
 					num_changed++;
 				}
@@ -211,7 +215,21 @@ void* handle_client(void *arg){
 				done = 1;
 			}
 			if(num_changed == 0){
-				num_incorrect++;
+				int already_guessed = 0;
+				for(int i = 0; i < num_incorrect; i++){
+					if(tolower(incorrect[i]) == tolower(cli_msg[1])){
+						already_guessed = 1;
+					}
+				}
+				for(int i = 0; i < strlen(actual_word); i++){
+					if(word[i] == cli_msg[1]){
+						already_guessed = 1;
+					}
+				}
+				if(!already_guessed){  // Check if client has guessed this before
+					num_incorrect++;
+					incorrect[num_incorrect-1] = toupper(cli_msg[1]);
+				}
 				if(num_incorrect == MAX_INCORRECT){  // Client lost
 					printf("handle_client(): Client loses\n");
 
@@ -225,7 +243,6 @@ void* handle_client(void *arg){
 					done = 1;
 				}
 				printf("handle_client(): Incorrect guess\n");
-				incorrect[num_incorrect-1] = toupper(cli_msg[1]);
 			}
 		}
 	}

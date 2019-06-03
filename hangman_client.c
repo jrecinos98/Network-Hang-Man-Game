@@ -127,13 +127,13 @@ int main(int argc, char *argv[]){
             //print win/lose message
         	print_message(buffer);
             memset(buffer, 0, MAX + 1);
-/*
+
             //Read the game over message
             if (read(sockfd,buffer,MAX) <= 0){
                 printf("ERROR: can't read from socket\n");
             }
             //print game over
-            print_message(buffer);*/
+            print_message(buffer);
         	//User either won or lost. Terminate loop and kill client
         	break;
         }
