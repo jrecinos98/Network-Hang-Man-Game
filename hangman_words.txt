@@ -1,1 +1,16 @@
 turtle
+adopted
+networks
+link
+mario
+spider
+batman
+orphan
+thanos
+yoshi
+female
+air
+fire
+water
+turtle
+snake

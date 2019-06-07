@@ -59,14 +59,23 @@ void get_incorrect(char *buffer, char* incorrect){
 		incorrect[i]= buffer[i+buffer[1]+3]; 
 	}
 }
-void print_message(char *buffer){
+int print_message(char *buffer){
     int msg_flag=buffer[0];
+    char overload[17]={"server-overloaded"};
+    int n=1;
     for (int i=0;i< msg_flag; i++){
+        if(msg_flag>= 17){
+            if(overload[i] != buffer[i+1] ){
+                n=0;
+            }
+        }
         printf("%c",buffer[i+1]);
     }
     printf("\n");
+    return n;
 
 }
+
 
 int main(int argc, char *argv[]){
 	int sockfd;
@@ -92,14 +101,22 @@ int main(int argc, char *argv[]){
 
     char start[MAX];
     start[MAX-1]='\0';
-
-    //Ask user to initiate game
-    printf("Ready to start game? (y/n): ");
-    fgets(start,MAX,stdin);
-    printf("\n");
+    int valid=0;
     //End the client if the user doesnt input y
-    if (start[0] != 'y'){
-    	return 0;
+    while(!valid){
+        //Ask user to initiate game
+        printf("Ready to start game? (y/n): ");
+        fgets(start,MAX,stdin);
+        printf("\n");
+        //fgets includes \n char so size == 2
+        if(tolower(start[0]) == 'y' && strlen(start)==2){
+            valid=1;
+        }
+        //fgets includes \n char so size == 2
+        if(tolower(start[0]) == 'n' && strlen(start)==2){
+            close(sockfd);
+            return 0;
+        }
     }
     char init_msg[CLIENT_MSG_SIZE+1]={0};
     init_msg[CLIENT_MSG_SIZE]='\0';
@@ -111,18 +128,26 @@ int main(int argc, char *argv[]){
         buffer[MAX-1]='\0';
         //Read the reply
         if (read(sockfd,buffer,MAX) <= 0){
-             printf("ERROR: can't read from socket\n");       
+             printf("ERROR: can't read from socket\n");   
+             exit(1);    
         }
         char msg_flag= buffer[0];
         //If msg flag is set then server sent a message to the client
         if(msg_flag){
             //Reveal the word
-            print_message(buffer);
+            if(print_message(buffer)){
+                break;
+            }
+            char *message= buffer+1;
+            if (strcmp("server-overloaded", message) == 0){
+                break;
+            }
             memset(buffer, 0, MAX + 1);
 
             //Read the next message (Win or lose message)
             if (read(sockfd,buffer,MAX) <= 0){
              	printf("ERROR: can't read from socket\n");
+                exit(1);
         	}
             //print win/lose message
         	print_message(buffer);
@@ -131,6 +156,7 @@ int main(int argc, char *argv[]){
             //Read the game over message
             if (read(sockfd,buffer,MAX) <= 0){
                 printf("ERROR: can't read from socket\n");
+                exit(1);
             }
             //print game over
             print_message(buffer);
